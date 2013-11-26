@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# VirtualBox を再起動する
+sudo /Library/StartupItems/VirtualBox/VirtualBox restart
