@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# 参考；
+# http://qiita.com/muniere/items/b5bf8d81b49cec80ba5d
+
+# チートシート
+# -F, --flush [chain]: 選択したチェーンのルールを消去する
+# -P, --policy chain target: 選択したチェーンのポリシーを指定する
+# -A, --append chain rule-specification: 選択したチェーンにルールを追加する
+#
+# -j, --jump target: ターゲットを指定する
+# -p, --protocol protocol: プロトコルを指定する
+# -i, --in-interface name: 入力インターフェースを指定する
+# -o, --out-interface name: 出力インターフェースを指定する
+# -m matchname
+# --dport, --destination-port port[:port]: 送信先ポートを指定する
+# --sport, --source-port port[:port]: 送信元ポートを指定する
+
+# ルールを初期化する
+iptables -F
+
+# 外部からのアクセスは拒否, 自分からのアクセスは許可する
+iptables -P INPUT DROP
+iptables -P FORWARD DROP
+iptables -P OUTPUT ACCEPT
+
+# ループバックインターフェースは許可する
+iptables -A INPUT -i lo -j ACCEPT
+
+# セッション確立後のアクセスは許可
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+
+# サービス用のポートを開放する
+iptables -A INPUT -p tcp --dport 22 -j ACCEPT   # SSH
+#iptables -A INPUT -p tcp --dport 25 -j ACCEPT   # SMTP
+#iptables -A INPUT -p tcp --dport 80 -j ACCEPT   # HTTP
+#iptables -A INPUT -p tcp --dport 110 -j ACCEPT  # POP3
+#iptables -A INPUT -p tcp --dport 143 -j ACCEPT  # IMAP
+#iptables -A INPUT -p tcp --dport 443 -j ACCEPT  # HTTPS
+#iptables -A INPUT -p tcp --dport 1194 -j ACCEPT # OpenVPN
+#iptables -A INPUT -p tcp --dport 3306 -j ACCEPT # MySQL
+
+# pingを許可する
+iptables -I INPUT -p icmp --icmp-type 0 -j ACCEPT
+iptables -I INPUT -p icmp --icmp-type 8 -j ACCEPT
+
