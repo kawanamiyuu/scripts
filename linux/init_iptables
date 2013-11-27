@@ -17,7 +17,8 @@
 # --sport, --source-port port[:port]: 送信元ポートを指定する
 
 # ルールを初期化する
-iptables -F
+iptables -t filter -F
+iptables -t nat    -F
 
 # 外部からのアクセスは拒否, 自分からのアクセスは許可する
 iptables -P INPUT DROP
@@ -30,17 +31,20 @@ iptables -A INPUT -i lo -j ACCEPT
 # セッション確立後のアクセスは許可
 iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 
+# pingを許可する
+iptables -I INPUT -p icmp --icmp-type 0 -j ACCEPT
+iptables -I INPUT -p icmp --icmp-type 8 -j ACCEPT
+
 # サービス用のポートを開放する
 iptables -A INPUT -p tcp --dport 22 -j ACCEPT   # SSH
 #iptables -A INPUT -p tcp --dport 25 -j ACCEPT   # SMTP
-#iptables -A INPUT -p tcp --dport 80 -j ACCEPT   # HTTP
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT   # HTTP
 #iptables -A INPUT -p tcp --dport 110 -j ACCEPT  # POP3
 #iptables -A INPUT -p tcp --dport 143 -j ACCEPT  # IMAP
 #iptables -A INPUT -p tcp --dport 443 -j ACCEPT  # HTTPS
 #iptables -A INPUT -p tcp --dport 1194 -j ACCEPT # OpenVPN
 #iptables -A INPUT -p tcp --dport 3306 -j ACCEPT # MySQL
 
-# pingを許可する
-iptables -I INPUT -p icmp --icmp-type 0 -j ACCEPT
-iptables -I INPUT -p icmp --icmp-type 8 -j ACCEPT
-
+# ポートフォワード
+#iptables -A INPUT -p tcp --dport 10080 -j ACCEPT
+#iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to-port 10080
